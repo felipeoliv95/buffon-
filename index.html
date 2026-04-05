@@ -3,198 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Geométrico: Agulhas de Buffon</title>
+    <title>Buffon: Visual e Espaço de Fases</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 20px; text-align: center; }
-        .container { background: white; padding: 25px; border-radius: 15px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 95%; max-width: 850px; }
-        canvas { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
-        .controls { background: #f8f9fa; padding: 20px; border-radius: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border: 1px solid #e9ecef; }
-        .slider-group { text-align: left; }
-        label { font-weight: bold; color: #495057; display: block; margin-bottom: 8px; }
-        input[type="range"] { width: 100%; cursor: pointer; }
-        
-        .math-card { margin-top: 20px; padding: 15px; border-radius: 10px; background: #fdfdfd; border: 1px solid #eee; }
-        .condicao-texto { font-size: 1.1em; color: #555; margin-bottom: 10px; }
-        .formula { font-family: 'Consolas', monospace; font-weight: bold; font-size: 1.6em; margin: 10px 0; }
-        
-        .status-alert {
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.8em;
-            font-weight: bold;
-            text-transform: uppercase;
-            transition: all 0.2s ease;
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f4f7f6; 
+            padding: 20px; 
+            text-align: center; 
         }
-        .status-corta { background-color: #fa5252; color: white; }
-        .status-nao-corta { background-color: #40c057; color: white; }
-        .txt-corta { color: #fa5252; }
-        .txt-nao-corta { color: #40c057; }
+        .container { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 15px; 
+            display: inline-block; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            width: 95%; 
+            max-width: 950px; 
+        }
+        .grid-sim { 
+            display: grid; 
+            grid-template-columns: 1.2fr 1fr; 
+            gap: 20px; 
+            margin-bottom: 20px; 
+        }
+        canvas { 
+            background-color: #fff; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            width: 100%;
+            height: auto;
+        }
+        .controls { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            border-radius: 12px; 
+            border: 1px solid #e9ecef; 
+            margin-bottom: 20px; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px;
+        }
+        .slider-group { text-align: left; }
+        label { 
+            font-weight: bold; 
+            color: #495057; 
+            display: block; 
+            margin-bottom: 8px; 
+        }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        .status-container { margin-top: 10px; }
+        .status { 
+            font-weight: bold; 
+            padding: 15px; 
+            border-radius: 8px; 
+            text-transform: uppercase; 
+            font-size: 1.4em; 
+        }
+        .hit { background: #fa5252; color: white; }
+        .miss { background: #40c057; color: white; }
+
+        @media (max-width: 800px) {
+            .grid-sim, .controls { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Geometria das Agulhas de Buffon</h2>
-    <p>Simulação Interativa da Probabilidade Geométrica</p>
+    <h2>Visual da Agulha vs Gráfico</h2>
+    <p>O ponto no gráfico representa a combinação de <b>Ângulo (&theta;)</b> e <b>Distância (D)</b> da agulha.</p>
 
-    <canvas id="canvas" width="800" height="400"></canvas>
-
-    <div class="controls">
-        <div class="slider-group">
-            <label>Posição do Centro (Y): <span id="y-txt">0.40</span></label>
-            <input type="range" id="ySlider" min="0" max="1" step="0.01" value="0.43">
+    <div class="grid-sim">
+        <div>
+            <label>Visão Geométrica da Agulha</label>
+            <canvas id="needleCanvas" width="500" height="350"></canvas>
         </div>
-        <div class="slider-group">
-            <label>Ângulo (&theta;): <span id="a-txt">45°</span></label>
-            <input type="range" id="aSlider" min="0" max="180" step="1" value="42">
+        <div>
+            <label> Visão do Gráfico (Mapa D vs &theta;)</label>
+            <canvas id="graphCanvas" width="400" height="350"></canvas>
         </div>
     </div>
 
-    <div class="math-card">
-        <div class="condicao-texto">Condição para que a agulha corte a linha: <b>D &le; 1/2 &times; sen(&theta;)</b></div>
-        <div class="formula" id="formula-display">
-            <span id="d-val-txt">0.430</span> 
-            <span id="simbolo-txt">&gt;</span> 
-            <span id="lim-val-txt">0.335</span>
+    <div class="controls">
+        <div class="slider-group">
+            <label>Posição Vertical do Centro (Y): <span id="y-txt">0.43</span></label>
+            <input type="range" id="ySlider" min="0" max="1" step="0.01" value="0.43">
         </div>
-        <div id="alert-box" class="status-alert status-nao-corta">Não Cortou</div>
+        <div class="slider-group">
+            <label>Ângulo da Agulha (&theta;): <span id="a-txt">42</span>&deg;</label>
+            <input type="range" id="aSlider" min="0" max="180" value="42">
+        </div>
+    </div>
+
+    <div class="status-container">
+        <div id="status-msg" class="status miss">Não Cortou</div>
     </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const ySlider = document.getElementById('ySlider');
-    const aSlider = document.getElementById('aSlider');
+    // Usamos o window.onload para garantir que as imagens apareçam assim que a página abrir
+    window.onload = function() {
+        const nCanvas = document.getElementById('needleCanvas');
+        const gCanvas = document.getElementById('graphCanvas');
+        const nCtx = nCanvas.getContext('2d');
+        const gCtx = gCanvas.getContext('2d');
+        const ySlider = document.getElementById('ySlider');
+        const aSlider = document.getElementById('aSlider');
 
-    const L = 300; 
-    const DIST = 300; 
-    const lineTop = 50;
-    const lineBot = 50 + DIST;
+        const L_needle = 250; 
+        const DIST_lines = 250; 
+        const margin = 50;
+        const lineTop = margin;
+        const lineBot = margin + DIST_lines;
 
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        const yPerc = parseFloat(ySlider.value);
-        const thetaDeg = parseInt(aSlider.value);
-        const thetaRad = (thetaDeg * Math.PI) / 180;
+        function draw() {
+            const yPerc = parseFloat(ySlider.value);
+            const thetaDeg = parseInt(aSlider.value);
+            const thetaRad = (thetaDeg * Math.PI) / 180;
+            
+            const isUpperRef = yPerc <= 0.5;
+            const D = isUpperRef ? yPerc : 1 - yPerc;
+            const refY = isUpperRef ? lineTop : lineBot;
+            const limit = 0.5 * Math.sin(thetaRad);
+            const cruzou = D <= limit + 0.001;
 
-        const cX = canvas.width / 2;
-        const cY = lineTop + (yPerc * DIST);
+            document.getElementById('a-txt').innerText = thetaDeg;
+            document.getElementById('y-txt').innerText = yPerc.toFixed(2);
+            const statusMsg = document.getElementById('status-msg');
+            statusMsg.innerText = cruzou ? "Cortou!" : "Não Cortou";
+            statusMsg.className = cruzou ? "status hit" : "status miss";
 
-        const isUpper = yPerc <= 0.5;
-        const D = isUpper ? yPerc : 1 - yPerc;
-        const refY = isUpper ? lineTop : lineBot;
-        const limit = 0.5 * Math.sin(thetaRad);
-        const cruzou = D <= limit + 0.001;
+            // --- DESENHAR AGULHA ---
+            nCtx.clearRect(0, 0, 500, 350);
+            nCtx.fillStyle = "#f8f9fa";
+            nCtx.fillRect(0, 0, 500, 350);
+            
+            nCtx.lineWidth = 4;
+            nCtx.strokeStyle = "#333";
+            nCtx.beginPath();
+            nCtx.moveTo(20, lineTop); nCtx.lineTo(480, lineTop);
+            nCtx.moveTo(20, lineBot); nCtx.lineTo(480, lineBot);
+            nCtx.stroke();
 
-        // 1. Linhas
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = "#333";
-        ctx.beginPath();
-        ctx.moveTo(50, lineTop); ctx.lineTo(750, lineTop);
-        ctx.moveTo(50, lineBot); ctx.lineTo(750, lineBot);
-        ctx.stroke();
+            const cX = 250, cY = lineTop + (yPerc * DIST_lines);
+            const xStart = cX - (L_needle/2) * Math.cos(thetaRad);
+            const yStart = cY + (L_needle/2) * Math.sin(thetaRad); 
+            const xEnd = cX + (L_needle/2) * Math.cos(thetaRad);
+            const yEnd = cY - (L_needle/2) * Math.sin(thetaRad);
 
-        // 2. Coordenadas
-        const xEnd = cX + (L/2) * Math.cos(thetaRad);
-        const yEnd = cY - (L/2) * Math.sin(thetaRad); 
-        const xStart = cX - (L/2) * Math.cos(thetaRad);
-        const yStart = cY + (L/2) * Math.sin(thetaRad);
+            nCtx.lineWidth = 10;
+            nCtx.lineCap = "round";
+            nCtx.strokeStyle = cruzou ? "#fa5252" : "#40c057";
+            nCtx.beginPath(); nCtx.moveTo(xStart, yStart); nCtx.lineTo(xEnd, yEnd); nCtx.stroke();
 
-        // 3. Triângulo
-        ctx.fillStyle = "rgba(230, 126, 34, 0.15)";
-        ctx.beginPath();
-        ctx.moveTo(cX, cY); ctx.lineTo(xEnd, cY); ctx.lineTo(xEnd, yEnd);
-        ctx.fill();
+            nCtx.fillStyle = "#000000";
+            nCtx.beginPath(); nCtx.arc(cX, cY, 6, 0, Math.PI * 2); nCtx.fill();
 
-        ctx.setLineDash([5, 5]);
-        ctx.strokeStyle = "#95a5a6";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(cX, cY); ctx.lineTo(xEnd, cY); ctx.lineTo(xEnd, yEnd);
-        ctx.stroke();
-        ctx.setLineDash([]);
+            drawArrow(nCtx, cX - 100, cY, cX - 100, refY, isUpperRef ? "#339af0" : "#ae3ec9");
 
-        const rSize = 15;
-        ctx.strokeRect(xEnd - rSize, cY - (yEnd < cY ? rSize : -rSize), rSize, (yEnd < cY ? rSize : -rSize));
+            // --- DESENHAR GRÁFICO ---
+            gCtx.clearRect(0, 0, 400, 350);
+            const pad = 40, gW = 320, gH = 250, baseline = 300;
+            
+            gCtx.fillStyle = "#339af0";
+            gCtx.beginPath();
+            gCtx.moveTo(pad, baseline);
+            for(let x=0; x<=gW; x++) {
+                let t = (x/gW) * Math.PI;
+                let y = Math.sin(t) * gH; 
+                gCtx.lineTo(pad + x, baseline - y);
+            }
+            gCtx.lineTo(pad + gW, baseline);
+            gCtx.fill();
 
-        // 4. Agulha
-        ctx.lineWidth = 10;
-        ctx.lineCap = "round";
-        ctx.strokeStyle = cruzou ? "#fa5252" : "#40c057";
-        ctx.beginPath();
-        ctx.moveTo(xStart, yStart);
-        ctx.lineTo(xEnd, yEnd);
-        ctx.stroke();
+            gCtx.strokeStyle = "#ccc";
+            gCtx.setLineDash([5, 5]);
+            gCtx.strokeRect(pad, baseline - gH, gW, gH);
+            gCtx.setLineDash([]);
+            gCtx.strokeStyle = "#000"; gCtx.lineWidth = 2;
+            gCtx.beginPath(); gCtx.moveTo(pad, 30); gCtx.lineTo(pad, baseline); gCtx.lineTo(pad+gW+20, baseline); gCtx.stroke();
+            
+            const pX = pad + (thetaDeg / 180) * gW;
+            const pY = baseline - (D / 0.5) * gH;
+            gCtx.fillStyle = cruzou ? "#fa5252" : "#40c057";
+            gCtx.beginPath(); gCtx.arc(pX, pY, 8, 0, Math.PI * 2); gCtx.fill();
+            gCtx.strokeStyle = "#000"; gCtx.lineWidth = 2; gCtx.stroke();
 
-        // 5. Centro da agulha
-        ctx.fillStyle = "#000000";
-        ctx.beginPath();
-        ctx.arc(cX, cY, 6, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 6. Legendas no Canvas
-        ctx.font = "bold 16px Arial";
-        ctx.fillStyle = "#333";
-        ctx.fillText("1/2", (cX + xEnd)/2 - 10, (cY + yEnd)/2 - 10);
-        ctx.fillStyle = "#e67e22";
-        ctx.fillText("1/2 sen(θ)", xEnd + 10, (cY + yEnd)/2);
-        
-        ctx.beginPath();
-        ctx.strokeStyle = "#f39c12";
-        ctx.lineWidth = 3;
-        ctx.arc(cX, cY, 40, 0, -thetaRad, true);
-        ctx.stroke();
-
-        const corD = isUpper ? "#339af0" : "#ae3ec9";
-        drawArrow(cX - 120, cY, cX - 120, refY, corD);
-        ctx.fillStyle = corD;
-        ctx.fillText("D = " + D.toFixed(2), cX - 185, (cY + refY)/2);
-
-        // 7. Atualizar UI e Lógica de Desigualdade
-        document.getElementById('y-txt').innerText = yPerc.toFixed(2);
-        document.getElementById('a-txt').innerText = thetaDeg + "°";
-        
-        const dValTxt = document.getElementById('d-val-txt');
-        const simboloTxt = document.getElementById('simbolo-txt');
-        const limValTxt = document.getElementById('lim-val-txt');
-        const alertBox = document.getElementById('alert-box');
-        const formulaDisplay = document.getElementById('formula-display');
-
-        dValTxt.innerText = D.toFixed(3);
-        limValTxt.innerText = limit.toFixed(3);
-
-        if (cruzou) {
-            simboloTxt.innerText = " ≤ ";
-            formulaDisplay.className = "formula txt-corta";
-            alertBox.innerText = "Cortou!";
-            alertBox.className = "status-alert status-corta";
-        } else {
-            simboloTxt.innerText = " > ";
-            formulaDisplay.className = "formula txt-nao-corta";
-            alertBox.innerText = "Não Cortou";
-            alertBox.className = "status-alert status-nao-corta";
+            gCtx.fillStyle = "#000"; gCtx.font = "bold 14px Arial";
+            gCtx.fillText("0", pad-10, baseline+20);
+            gCtx.fillText("π", pad+gW-5, baseline+20);
+            gCtx.fillText("1/2", pad-30, baseline-gH+5);
+            gCtx.fillText("θ", pad+gW+15, baseline+20);
+            gCtx.fillText("D", pad-25, 30);
         }
-    }
 
-    function drawArrow(x1, y1, x2, y2, color) {
-        const head = 12;
-        const angle = Math.atan2(y2 - y1, x2 - x1);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x2, y2);
-        ctx.lineTo(x2 - head * Math.cos(angle - Math.PI/6), y2 - head * Math.sin(angle - Math.PI/6));
-        ctx.lineTo(x2 - head * Math.cos(angle + Math.PI/6), y2 - head * Math.sin(angle + Math.PI/6));
-        ctx.stroke();
-    }
+        function drawArrow(ctx, x1, y1, x2, y2, color) {
+            const head = 10;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - head * Math.cos(angle - Math.PI/6), y2 - head * Math.sin(angle - Math.PI/6));
+            ctx.lineTo(x2 - head * Math.cos(angle + Math.PI/6), y2 - head * Math.sin(angle + Math.PI/6));
+            ctx.stroke();
+        }
 
-    ySlider.oninput = draw;
-    aSlider.oninput = draw;
-    draw();
+        ySlider.oninput = draw;
+        aSlider.oninput = draw;
+        draw(); // Chama o desenho pela primeira vez
+    };
 </script>
 
 </body>
